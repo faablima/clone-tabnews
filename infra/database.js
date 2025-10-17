@@ -6,6 +6,7 @@ const pool = new Pool({
   user: process.env.POSTGRES_USER,
   database: process.env.POSTGRES_DB,
   password: process.env.POSTGRES_PASSWORD,
+  ssl: process.env.NODE_ENV === "developtment" ? false : true,
   max: process.env.PG_MAX_CLIENTS ? Number(process.env.PG_MAX_CLIENTS) : 10,
   application_name: process.env.APP_NAME || "clone-tabnews",
 });
