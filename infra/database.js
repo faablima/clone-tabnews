@@ -36,5 +36,5 @@ function getSSLValues() {
       rejectUnauthorized: true,
     };
   }
-  process.env.NODE_ENV === "development" ? false : true;
+  return process.env.NODE_ENV === "development" ? false : true;
 }
