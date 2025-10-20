@@ -13,19 +13,47 @@ const pool = new Pool({
 
 export default {
   query: async (text, params) => {
-    console.log("DB QUERY:", text);
-    const start = Date.now();
     try {
       const res = await pool.query(text, params);
-      console.log("DB QUERY OK:", Date.now() - start, "ms");
       return res;
     } catch (err) {
       console.error("DB QUERY ERROR:", err.message || err);
       throw err;
     }
   },
+  getClient: async () => {
+    const client = await pool.connect();
+    const query = client.query.bind(client);
+    const release = client.release.bind(client);
+
+    client.query = async (text, params) => {
+      try {
+        const res = await query(text, params);
+        return res;
+      } catch (err) {
+        console.error("DB QUERY ERROR:", err.message || err);
+        throw err;
+      }
+    };
+
+    return {
+      query: client.query,
+      release,
+    };
+  },
   close: async () => {
     await pool.end();
+  },
+  getDatabaseUrl: () => {
+    const {
+      POSTGRES_USER,
+      POSTGRES_PASSWORD,
+      POSTGRES_HOST,
+      POSTGRES_PORT,
+      POSTGRES_DB,
+    } = process.env;
+    const port = POSTGRES_PORT || "5432";
+    return `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${port}/${POSTGRES_DB}`;
   },
 };
 
@@ -36,5 +64,5 @@ function getSSLValues() {
       rejectUnauthorized: true,
     };
   }
-  return process.env.NODE_ENV === "development" ? false : true;
+  return process.env.NODE_ENV === "production" ? true : false;
 }
