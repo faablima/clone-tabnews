@@ -51,9 +51,17 @@ export default {
       POSTGRES_HOST,
       POSTGRES_PORT,
       POSTGRES_DB,
+      NODE_ENV,
     } = process.env;
     const port = POSTGRES_PORT || "5432";
-    return `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${port}/${POSTGRES_DB}`;
+    const baseUrl = `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${port}/${POSTGRES_DB}`;
+
+    // Adiciona SSL em produção
+    if (NODE_ENV === "production") {
+      return `${baseUrl}?sslmode=require`;
+    }
+
+    return baseUrl;
   },
 };
 
