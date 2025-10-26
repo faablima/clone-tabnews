@@ -1,14 +1,14 @@
+import orchestrator from "tests/orchestrator";
 import database from "infra/database";
 
-beforeAll(cleanDatabase);
+beforeAll(async () => {
+  await database.query("drop schema public cascade; create schema public;");
+  await orchestrator.waitForAllServices();
+});
 
 afterAll(async () => {
   await database.close();
 });
-
-async function cleanDatabase() {
-  await database.query("drop schema public cascade; create schema public;");
-}
 
 test("POST to /api/v1/migrations applies pending migrations", async () => {
   // 1. Verificar estado inicial: migrations pendentes via API
@@ -58,9 +58,7 @@ test("POST to /api/v1/migrations applies pending migrations", async () => {
   expect(appliedAgain.length).toBe(0);
 
   // 6. Confirmar que pgmigrations não mudou (idempotência)
-  const finalMigrations = await database.query(
-    "SELECT * FROM pgmigrations;",
-  );
+  const finalMigrations = await database.query("SELECT * FROM pgmigrations;");
 
   expect(finalMigrations.rows.length).toBe(migrationsInDatabase.rows.length);
 });
